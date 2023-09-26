@@ -1,6 +1,7 @@
 "use client"
 import { CircularProgressbar , buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
+import ProgressLine from './ProgressLine';
 import {
     Card,
     CardContent,
@@ -29,11 +30,11 @@ const Result = ({percentage_obj }) => {
           Template Matching
         </CardTitle>
       </CardHeader>
-     <CardContent className="flex gap-4 align-top">
-          <ProgressBar percentage={SIFT.toFixed(2)} info="SIFT"></ProgressBar>
-          <ProgressBar percentage={SSIM.toFixed(2)} info="SSIM"></ProgressBar>
-          <ProgressBar percentage={Hash.toFixed(2)} info="Hash"></ProgressBar>
-          <ProgressBar percentage={Color.toFixed(2)} info="Color"></ProgressBar>
+     <CardContent className="flex flex-col gap-4 align-top">
+          <ProgressLine percentage={SIFT.toFixed(2)} info="SIFT" og></ProgressLine>
+          <ProgressLine percentage={SSIM.toFixed(2)} info="SSIM" og></ProgressLine>
+          <ProgressLine percentage={Hash.toFixed(2)} info="Hash" og></ProgressLine>
+          <ProgressLine percentage={Color.toFixed(2)} info="Color" og></ProgressLine>
       </CardContent>
      
     </Card>

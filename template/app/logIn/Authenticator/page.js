@@ -1,15 +1,20 @@
 'use client'
 import React, { useEffect } from 'react'
 import axios from 'axios';
+import Popovertext from "@/components/Popovertext"
 import { useState } from 'react';
 import { InputFile } from '@/components/input'
 import TemplateCard from '@/components/TemplateCard';
-
+import { useUploadThing } from '@/lib/hooks/uploadthings';
+import { set } from 'mongoose';
+import { Item } from '@radix-ui/react-dropdown-menu';
+import Similar from '@/components/Similar';
 
 const page = () => {
   const [submitting , setSubmitting] = useState(false);
   const [selected , setSelected] = useState([]);
   const [fileData , setFileData] = useState([]);
+  const {startUpload} = useUploadThing("media");
 
   const onSubmit = async (event)=>{
     setSubmitting(true)
@@ -103,7 +108,9 @@ const page = () => {
             prev[index].result = matchresponse.data;
             return [...prev];
           });
-  
+          
+          getSimilarity(Item, index);
+
           resolve(matchresponse.data);
         } catch (error) {
           console.log("Error in getMatch:", error);
@@ -116,7 +123,99 @@ const page = () => {
   };
 
 
+  const getSimilarity = (Item, index) => {
+    console.log("Item", Item);
+    return new Promise(async (resolve) => {
+      const fileReader = new FileReader();
+      fileReader.onload = async () => {
+        try {
+          const fileData = {
+            data: fileReader.result.split(';base64,').pop(),
+          };
+          const similarResponse = await axios.post('/api/similar', JSON.stringify(fileData), {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          getSimilarityScore(similarResponse,index);
 
+          setFileData((prev) => {
+            prev[index].similarResult = similarResponse.data.similar;
+            prev[index].similarityScore = [];
+            return [...prev];
+          });
+          console.log("similarResponse", similarResponse.data);
+          resolve(similarResponse.data);
+        } catch (error) {
+          console.log("Error in getSimilarity:", error);
+          resolve(null);
+        }
+      };
+      fileReader.readAsDataURL(selected[index]);
+    });
+  }
+
+  const getSimilarityScore = async (Item, index) => {
+    console.log("Item", Item);
+    console.log('ok')
+    for(var i = 0 ; i < Item.data.similar.length ; i++){
+      await getSimilarityScore1(Item.data.similar[i].id,index);
+    }
+    finalScore(index);
+  }
+
+  
+
+  const getSimilarityScore1 = async (Item, index) => {
+    return new Promise(async (resolve) => {
+      const fileReader = new FileReader();
+      fileReader.onload = async () => {
+        try {
+          const fileData = {
+            template: Item,
+            data: fileReader.result.split(';base64,').pop(),
+          };
+          const similarResponse = await axios.post('/api/textMatch', JSON.stringify(fileData), {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          setFileData((prev) => {
+            prev[index].similarityScore.push(similarResponse.data);
+            return [...prev];
+          });
+          console.log("similarScoreResponse", similarResponse.data);
+          resolve(similarResponse.data);
+        } catch (error) {
+          console.log("Error in getSimilarity:", error);
+          resolve(null);
+        }
+      };
+      
+      fileReader.readAsDataURL(selected[index]);
+    });
+  }
+
+  const finalScore = (index)=>{
+    var max = 0;
+    fileData[index].similarityScore.map((item)=>{
+      max = Math.max(item.score,max);
+    })
+    
+    var temp_score = fileData[index].result.SIFT + fileData[index].SSIM + fileData[index].Hash + fileData[index].Color;
+    temp_score/=4;
+    setFileData((prev) => { 
+      if(temp_score > 95 && max < 90)
+      prev[index].finalScore = 'green';
+      else if(temp_score > 90 && max < 95)
+      prev[index].finalScore = 'Amber';
+      else 
+      prev[index].finalScore = 'red';
+      return [...prev];
+    });
+  }
 
   const onChange = async (event)=>{
     setSelected(event.target.files);
@@ -137,6 +236,10 @@ const page = () => {
             data: null,
             result: null,
             textResult: null,
+            similarResult: [],
+            similarityScore: [],
+            upload: false,
+            finalScore: null,
           };
   
           setFileData((prev) => [...prev, newFileData]);
@@ -154,30 +257,79 @@ const page = () => {
     });
   };
   
+  const onUpload = async (Item, index) => {
+    setFileData((prev) => {
+      prev[index].upload = true;
+      return [...prev];
+    });
+    const obj = [...selected]
+    console.log(obj)
+    const imageRes = await startUpload(Array.from([obj[index]]));
+    var imgUrl = null
+    if(imageRes ){
+      imgUrl = imageRes[0].fileUrl;
+    }
+    
+    if(imgUrl){
+      const fileReader = new FileReader();
+      fileReader.onload = async () => {
+        try {
+          const templates = {
+            imgUrl : imgUrl,
+            data: fileReader.result.split(';base64,').pop(),
+          };
+          const vectorresponse = await axios.post('/api/vectorUpload', JSON.stringify(templates), {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          console.log(vectorresponse);
+        } catch (error) {
+          console.log("Error in getMatch:", error);
+        }
+      };
+      
+      fileReader.readAsDataURL(selected[index]);
+    }
+    setFileData((prev) => {
+      prev[index].upload = false;
+      return [...prev];
+    });
+  }
   
   return (
-    <div className='flex flex-row flex-wrap justify-evenly items-center'>
-        <div className='flex-col justify-center items-center'>
-          <InputFile selected={selected}  submitting={submitting}  onSubmit={onSubmit} onChange={onChange} />
-          {
-            fileData.map((Item,index)=>(
-              <div key={index} className='w-full flex gap-5'>
-                <TemplateCard ext_text={Item.data} og_image={Item.src} og_template={Item.template} temp_score={Item.result} text_score={Item.textResult}></TemplateCard>
-
-              </div>
-              
-            ))
-          }
+    <div className='grid grid-cols-5 grid-rows-2 h-screen border-solid border-2 border-black'>
+      <div className='col-span-2 row-span-1 grid grid-cols-2 border-solid border-2 border-black'>
+        <InputFile selected={selected}  submitting={submitting}  onSubmit={onSubmit} onChange={onChange} />
+        <div className='border-solid border-2 border-black col-span-1 flex flex-col gap-2 justify-center items-center '>
+          {fileData.length>0 && <FileCard src={fileData[0].src} name={"Selected"} />}
+          {fileData.length>0 && fileData[0].data && <Popovertext text={fileData[0].data} />}
         </div>
+        </div> 
+      <div className='col-span-3 row-span-1 border-solid border-2 border-black'></div>
+      <div className='col-span-5 row-span-1 border-solid border-2 border-black grid grid-cols-3'> 
+        {fileData.length > 0 && fileData[0].similarResult.map((item,index)=>(
+          <Similar item={item} index={index} similarityScore={fileData[0].similarityScore} />
+        ))}
+      </div>
     </div>
+          // {/* <InputFile selected={selected}  submitting={submitting}  onSubmit={onSubmit} onChange={onChange} /> */}
+          //  {
+          //   fileData.map((Item,index)=>(
+          //     <div key={index} className='w-full flex gap-5'>
+          //       <TemplateCard ext_text={Item.data} og_image={Item.src} og_template={Item.template} temp_score={Item.result} text_score={Item.textResult } index={index} upload={Item.upload} onUpload={onUpload} similarResult={Item.similarResult} similarityScore={Item.similarityScore} finalScore={Item.finalScore} ></TemplateCard>
+          //     </div>
+          //   ))
+          // } 
+        
   )
 }
 
 const FileCard = ({src , name})=>{
   return(
-    src && <div className='w-1/3 pr-4 flex flex-col'>
-      <h2>{name}</h2>
-      <img height={600} src={src} id={name} alt={name} />
+    src && <div className=' flex flex-col justify-between items-center '>
+      <h2 className='font-semibold text-lg'>{name}</h2>
+      <img src={src} id={name} alt={name} className='h-[200px] w-[200px]' />
     </div>
   )
 }

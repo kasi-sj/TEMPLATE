@@ -4,9 +4,9 @@ import io
 
 # ocr_api_key = "sMyTAXJrkUA1oMb7V7Eo/Q==1JZOORPP5NNEzzd3"
 ocr_api_key = "M41KHFeJZeJvsu/oIi7Hgw==9908OP45hHzgWMr7"
-openai.api_key = "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"  
+openai.api_key = "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"  
 
-def perform_ocr(binary_data, api_key):
+def perform_ocr(binary_data):
     api_url = 'https://api.api-ninjas.com/v1/imagetotext'
 
     files = {'image': binary_data}
@@ -66,7 +66,7 @@ def generate_gpt_response(input_text):
 
 
 def convert(data):
-    ocr_text = perform_ocr(data, ocr_api_key)
+    ocr_text = perform_ocr(data)
     print()
     if ocr_text:
         print("OCR Result:")
@@ -80,3 +80,13 @@ def convert(data):
             print(gpt_response)
             return gpt_response
     return ''
+
+def reduce(input_text):
+    res=""
+    for item in input_text:
+        l=[]
+        for k in item:
+            if k == 'text':
+                l.append(item[k])
+        res+=str(l)
+    return res

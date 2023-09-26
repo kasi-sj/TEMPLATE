@@ -4,7 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 const Popovertext = ({ text }) => {
   const data = text;
   return (
-    <div className={`flex flex-col w-[400px] h-[196px] p-2 px-2 border-solid border-black border-[1px] rounded-sm`} >
+    <div className={`flex flex-col w-[200px] h-[196px] p-2 px-2 border-solid border-black border-[1px] rounded-sm`} >
       <h1 className='first:self-center font-semibold '>Extracted Text</h1>
       <ScrollArea>{(
   <div>{ data!=null && (

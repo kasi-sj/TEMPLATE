@@ -123,6 +123,7 @@ export default function ProfileForm() {
       }
       console.log(response.data);
       const result = response.data;
+      console.log(files);
       const imageRes = await startUpload(files);
       if(!imageRes || !imageRes[0].fileUrl){
         setSubmitting(false);

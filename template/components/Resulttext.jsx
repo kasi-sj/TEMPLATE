@@ -36,7 +36,7 @@ const Resulttext = ({text_score}) => {
         </CardTitle>
       </CardHeader>
      <CardContent>
-          <ProgressBar percentage={text_score} info="Text Matching"></ProgressBar>
+          <ProgressBar percentage={text_score.toFixed(2)} info="Text Matching"></ProgressBar>
       </CardContent>
      
     </Card>

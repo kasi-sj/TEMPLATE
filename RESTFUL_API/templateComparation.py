@@ -74,10 +74,3 @@ def compare_images(binary_data1, binary_data2):
     result_dict["Color"] = color_similarity
 
     return result_dict
-# Example usage:
-# with open('image1.jpg', 'rb') as file1, open('image2.jpg', 'rb') as file2:
-#     binary_data1 = file1.read()
-#     binary_data2 = file2.read()
-
-# result = compare_images(binary_data1, binary_data2)
-# print(result)
