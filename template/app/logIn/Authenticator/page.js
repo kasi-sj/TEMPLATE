@@ -1,8 +1,6 @@
-'use client';
+'use client'
 import React, { useEffect } from 'react'
 import axios from 'axios';
-import { CCarousel, CCarouselItem, CImage } from '@coreui/react'
-// import '@coreui/coreui/dist/css/coreui.min.css'
 import Popovertext from "@/components/Popovertext"
 import { useState } from 'react';
 import { InputFile } from '@/components/input'
@@ -12,26 +10,19 @@ import { set } from 'mongoose';
 import { Item } from '@radix-ui/react-dropdown-menu';
 import Similar from '@/components/Similar';
 
-
-//image imports
-import Image from 'next/image';
-import logo from '@/public/images/logo.png';
-
-
 const page = () => {
   const [submitting , setSubmitting] = useState(false);
-  const[ index, setIndex] = useState(0);
   const [selected , setSelected] = useState([]);
   const [fileData , setFileData] = useState([]);
   const {startUpload} = useUploadThing("media");
 
   const onSubmit = async (event)=>{
     setSubmitting(true)
-
     for(var index = 0 ; index < selected.length ; index++){
       const Item = selected[index];
       await appendData(Item,index);
     }
+    setSubmitting(false)
   }
 
   const appendData = async (Item , index)=>{
@@ -307,21 +298,21 @@ const page = () => {
   }
   
   return (
-    // <div className='grid grid-cols-2  h-screen border-solid border-2 border-black'>
-    //   <div className='col-span-2 row-span-1 grid grid-cols-2 border-solid border-2 border-black'>
-    //     <InputFile selected={selected}  submitting={submitting}  onSubmit={onSubmit} onChange={onChange} />
-    //     <div className='border-solid border-2 border-black col-span-1 flex flex-col gap-2 justify-center items-center '>
-    //       {fileData.length>0 && <FileCard src={fileData[0].src} name={"Selected"} />}
-    //       {fileData.length>0 && fileData[0].data && <Popovertext text={fileData[0].data} />}
-    //     </div>
-    //     </div> 
-    //   <div className='col-span-3 row-span-1 border-solid border-2 border-black'></div>
-    //   <div className='col-span-5 row-span-1 border-solid border-2 border-black grid grid-cols-3'> 
-    //     {fileData.length > 0 && fileData[0].similarResult.map((item,index)=>(
-    //       <Similar item={item} index={index} similarityScore={fileData[0].similarityScore} />
-    //     ))}
-    //   </div>
-    // </div>
+    <div className='grid grid-cols-5 grid-rows-2 h-screen border-solid border-2 border-black'>
+      <div className='col-span-2 row-span-1 grid grid-cols-2 border-solid border-2 border-black'>
+        <InputFile selected={selected}  submitting={submitting}  onSubmit={onSubmit} onChange={onChange} />
+        <div className='border-solid border-2 border-black col-span-1 flex flex-col gap-2 justify-center items-center '>
+          {fileData.length>0 && <FileCard src={fileData[0].src} name={"Selected"} />}
+          {fileData.length>0 && fileData[0].data && <Popovertext text={fileData[0].data} />}
+        </div>
+        </div> 
+      <div className='col-span-3 row-span-1 border-solid border-2 border-black'></div>
+      <div className='col-span-5 row-span-1 border-solid border-2 border-black grid grid-cols-3'> 
+        {fileData.length > 0 && fileData[0].similarResult.map((item,index)=>(
+          <Similar item={item} index={index} similarityScore={fileData[0].similarityScore} />
+        ))}
+      </div>
+    </div>
           // {/* <InputFile selected={selected}  submitting={submitting}  onSubmit={onSubmit} onChange={onChange} /> */}
           //  {
           //   fileData.map((Item,index)=>(
@@ -329,44 +320,8 @@ const page = () => {
           //       <TemplateCard ext_text={Item.data} og_image={Item.src} og_template={Item.template} temp_score={Item.result} text_score={Item.textResult } index={index} upload={Item.upload} onUpload={onUpload} similarResult={Item.similarResult} similarityScore={Item.similarityScore} finalScore={Item.finalScore} ></TemplateCard>
           //     </div>
           //   ))
-          // }
-          
-        //athesh adiccha code-uu
-        <>
-        {selected.length == 0 && <InputFile selected={selected}  submitting={submitting}  onSubmit={onSubmit} onChange={onChange} />}
-        {selected.length != 0 && <div className='h-screen grid grid-cols-2 border-solid border-black border-2 '>  
-            <div className='w-3/4'>
-              <div className='border-2 border-black h-2/4'>
-                {fileData.length > 0 && <Image src={fileData[0].src} width={300} height={400} />}
-              </div>
-              <div className='border-2 border-black h-2/4'>
-              {fileData.length>0 && fileData[0].data && <Popovertext text={fileData[0].data} />}
-              </div>
-            </div>
-          <div className='w-3/4 pt-5'>
-         
-          {/* <CCarousel controls indicators activeIndex={index} onSlid= {(active, direction)=>{
-            setIndex(active)
-            console.log(index) 
-            }
-            }>
-            <CCarouselItem >
-                <CImage className="d-block w-100 rounded-md" src="https://coreui.io/react/docs/static/react-83088efde08a5dedde9f67a954cb4b5b.jpg" alt="slide 1" />
-                <CImage className="d-block w-100 rounded-md" src="https://coreui.io/react/docs/static/react-83088efde08a5dedde9f67a954cb4b5b.jpg" alt="slide 1" />
-            </CCarouselItem>
-            <CCarouselItem>
-              <CImage className="d-block w-100 rounded-md" src="https://coreui.io/react/docs/static/vue-8a74d93fde1a02c247304291cce46797.jpg" alt="slide 2" />
-              <CImage className="d-block w-100 rounded-md" src="https://coreui.io/react/docs/static/react-83088efde08a5dedde9f67a954cb4b5b.jpg" alt="slide 1" />
-            </CCarouselItem>
-            <CCarouselItem>
-              <CImage className="d-block w-100 rounded-md" src="https://coreui.io/react/docs/static/angular-2f3764e2ec8b0b47ebe68f2f80260ef1.jpg" alt="slide 3" />
-              <CImage className="d-block w-100 rounded-md" src="https://coreui.io/react/docs/static/react-83088efde08a5dedde9f67a954cb4b5b.jpg" alt="slide 1" />
-            </CCarouselItem>
-           
-          </CCarousel> */}
-          </div>
-        </div>}
-        </>
+          // } 
+        
   )
 }
 
